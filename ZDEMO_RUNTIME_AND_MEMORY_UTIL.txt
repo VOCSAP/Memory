@@ -1,0 +1,108 @@
+*&---------------------------------------------------------------------*
+*& Report  ZDEMO_RUNTIME_AND_MEMORY
+*&
+*&---------------------------------------------------------------------*
+*&
+*&
+*&---------------------------------------------------------------------*
+
+REPORT zdemo_runtime_and_memory.
+
+DATA : lo_runtime TYPE REF TO zcl_runtime_and_memory_util.
+DATA : lv_trace_activ TYPE flag.
+
+DATA : ls_edidc TYPE edidc.
+DATA : lt_edid4 TYPE edi_dd40_tt.
+DATA : ls_edid4 TYPE edi_dd40.
+DATA : ls_idoc_data TYPE zlowamas_intf_aa.
+DATA : lv_idoc_number TYPE edidc-docnum.
+
+TRY.
+    " Génération de la classe de Trace (si active dans table de paramétrage)
+    lo_runtime = zcl_runtime_and_memory_util=>create_runtime_util( iv_programm = 'ZDEMO_RUNTIME_AND_MEMORY'  ).
+
+    " Initialisation flag trace active
+    lv_trace_activ = abap_true.
+
+  CATCH cx_sy_create_object_error.
+
+ENDTRY.
+
+IF lv_trace_activ EQ abap_true.
+
+  " Début de la trace Globale
+  lo_runtime->start(
+    EXPORTING
+      iv_measure_id    =  'GLOBAL_TRACE'
+      iv_measure_desc  =  'Trace pour démo. utilisation classe Trace'
+  ).
+
+  " Début de la trace d'alimentation des données
+  lo_runtime->start( iv_measure_id = 'FILL_DATA' ).
+
+ENDIF.
+
+
+ls_edidc-mestyp  = 'ZLOWAMAS_MATERIAL'.
+ls_edidc-idoctp = 'ZLOWAM_MAT_AA'.
+ls_edidc-direct  = 1.
+ls_edidc-mesfct = 'AA'.
+ls_edidc-rcvprn  = 'WAMAS'.
+ls_edidc-rcvprt  = 'LS'.
+ls_edidc-rcvpor  = 'WAMAS'.
+ls_edidc-outmod  = 2.
+ls_edidc-sndpor  = 'SAP' && sy-sysid.
+ls_edidc-sndprt  = 'LS'.
+ls_edidc-sndprn  = 'WAMAS'.
+
+
+ls_idoc_data-func_code = 'A*A'.
+ls_idoc_data-object_key = '555'.
+
+ls_edid4-segnam = 'ZLOWAMAS_INTF_AA'.
+ls_edid4-sdata  = ls_idoc_data.
+APPEND ls_edid4 TO lt_edid4.
+
+IF lv_trace_activ EQ abap_true.
+  " Fin de la trace d'alimentation des données
+  lo_runtime->stop( iv_measure_id = 'FILL_DATA' ).
+
+  " Début de la trace génération de l'IDOC
+  lo_runtime->start(
+    EXPORTING
+      iv_measure_id    = 'IDOC_INBOUND'
+*      iv_measure_seqnr =     " Permet de définir un numéro de séquence
+*      iv_measure_objid =  " On pourrait préciser la clef de l'objet métier (Numéro d'Article / Livraison )
+      iv_measure_desc  = 'Trace sur génération IDOC entrant'
+  ).
+ENDIF.
+
+CALL FUNCTION 'IDOC_INBOUND_SINGLE'
+  EXPORTING
+    pi_idoc_control_rec_40  = ls_edidc
+    pi_do_commit            = abap_false
+  IMPORTING
+    pe_idoc_number          = lv_idoc_number
+  TABLES
+    pt_idoc_data_records_40 = lt_edid4
+  EXCEPTIONS
+    idoc_not_saved          = 1
+    OTHERS                  = 2.
+
+IF lv_trace_activ EQ abap_true.
+
+  " Arrêt de la trace de génération de l'IDOC
+  lo_runtime->stop( iv_measure_id = 'IDOC_INBOUND' ).
+
+  " Arrêt de la trace globale
+  lo_runtime->stop( iv_measure_id = 'GLOBAL_TRACE' ).
+
+  " -----------------------------------------------------------
+  " Sauvegarde la trace en DB
+  " -----------------------------------------------------------
+
+  lo_runtime->save_to_db(
+      iv_commit = abap_true
+  ).
+
+ENDIF.

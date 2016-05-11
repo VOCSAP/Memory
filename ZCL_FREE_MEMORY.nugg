@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nugget name="ZCL_FREE_MEMORY">
+ <CLAS CLSNAME="ZCL_FREE_MEMORY" VERSION="1" LANGU="F" DESCRIPT="Classe libération mémoire" CATEGORY="00" EXPOSURE="2" STATE="1" RELEASE="0" CLSFINAL="X" CLSCCINCL="X" FIXPT="X" UNICODE="X" CLSBCCAT="00" DURATION_TYPE="0 " RISK_LEVEL="0 ">
+  <types CLSNAME="ZCL_FREE_MEMORY" CMPNAME="TY_T_ZTEC_FREE_MEMORY" VERSION="1" LANGU="F" EXPOSURE="0" STATE="1" EDITORDER="1 " TYPTYPE="4" SRCROW1="4 " SRCCOLUMN1="4 " SRCROW2="4 " SRCCOLUMN2="115 " TYPESRC_LENG="114 " TYPESRC="ty_t_ztec_free_memory TYPE SORTED TABLE OF ztec_free_memory WITH UNIQUE KEY PRIMARY_KEY COMPONENTS programm step
+"/>
+  <localImplementation>*&quot;* use this source file for the definition and implementation of
+*&quot;* local helper classes, interface definitions and type
+*&quot;* declarations</localImplementation>
+  <localTypes>*&quot;* use this source file for any type of declarations (class
+*&quot;* definitions, interfaces or type declarations) you need for
+*&quot;* components in the private section</localTypes>
+  <localMacros>*&quot;* use this source file for any macro definitions you need
+*&quot;* in the implementation part of the class</localMacros>
+  <attribute CLSNAME="ZCL_FREE_MEMORY" CMPNAME="GT_FREE_MEMORY" VERSION="1" LANGU="F" EXPOSURE="0" STATE="1" EDITORDER="1 " ATTDECLTYP="1" ATTEXPVIRT="0" TYPTYPE="1" TYPE="TY_T_ZTEC_FREE_MEMORY" SRCROW1="0 " SRCCOLUMN1="0 " SRCROW2="0 " SRCCOLUMN2="0 " TYPESRC_LENG="0 "/>
+  <method CLSNAME="ZCL_FREE_MEMORY" CMPNAME="EXECUTE" VERSION="1" LANGU="F" DESCRIPT="Traitement libération mémoire" EXPOSURE="2" STATE="1" EDITORDER="1 " DISPID="0 " MTDTYPE="0" MTDDECLTYP="1" BCMTDCAT="00" BCMTDSYN="0">
+   <parameter CLSNAME="ZCL_FREE_MEMORY" CMPNAME="EXECUTE" SCONAME="IV_PROGRAMM" VERSION="1" LANGU="F" DESCRIPT="Nom du programme ABAP" CMPTYPE="1" MTDTYPE="0" EDITORDER="1 " DISPID="0 " PARDECLTYP="0" PARPASSTYP="0" TYPTYPE="1" TYPE="PROGRAMM"/>
+   <parameter CLSNAME="ZCL_FREE_MEMORY" CMPNAME="EXECUTE" SCONAME="RV_SUBRC" VERSION="1" LANGU="F" DESCRIPT="Zone système ABAP : code retour des instructions ABAP" CMPTYPE="1" MTDTYPE="0" EDITORDER="2 " DISPID="0 " PARDECLTYP="3" PARPASSTYP="0" TYPTYPE="1" TYPE="SY-SUBRC"/>
+   <source>METHOD execute.
+
+***------------------------------------------------------------------***
+**                            VARIABLES                               **
+***------------------------------------------------------------------***
+  DATA :
+    lv_assign TYPE string.
+
+***------------------------------------------------------------------***
+**                          FIELD-SYMBOLS                             **
+***------------------------------------------------------------------***
+  FIELD-SYMBOLS :
+    &lt;lfs_tab&gt; TYPE ANY TABLE.
+
+***==================================================================***
+**                           TRAITEMENT                               **
+***==================================================================***
+
+  CLEAR : rv_subrc.
+
+  &quot; -----------------------------------------------------------
+  &quot; Récupération des données à libérer
+  &quot; -----------------------------------------------------------
+
+  &quot; Les données ont-elles déjà été récupérée ?
+  READ TABLE zcl_free_memory=&gt;gt_free_memory WITH KEY programm = iv_programm
+                                         TRANSPORTING NO FIELDS BINARY SEARCH.
+  IF sy-subrc NE 0.
+    &quot; Aucune données
+    &quot;&quot;  --&gt; Récupération des données
+    SELECT * FROM ztec_free_memory INTO TABLE zcl_free_memory=&gt;gt_free_memory
+                                        WHERE programm EQ iv_programm.
+    IF sy-subrc NE 0.
+      &quot; Aucune données
+      &quot;&quot;  --&gt; Retourne code retour en erreur
+      rv_subrc = 8.
+
+      &quot;&quot;  --&gt; Arrêt du traitement
+      RETURN.
+
+    ENDIF.
+
+    &quot; Récupération position première occurence
+    READ TABLE zcl_free_memory=&gt;gt_free_memory WITH KEY programm = iv_programm
+                                         TRANSPORTING NO FIELDS BINARY SEARCH.
+
+  ENDIF.
+
+  &quot; -----------------------------------------------------------
+  &quot; Traitement
+  &quot; -----------------------------------------------------------
+
+  &quot; Parcours l&apos;ensemble des données à traiter
+  LOOP AT zcl_free_memory=&gt;gt_free_memory ASSIGNING FIELD-SYMBOL(&lt;lfs_s_free_memory&gt;)
+                                               FROM sy-tabix.
+
+    IF &lt;lfs_s_free_memory&gt;-programm NE iv_programm.
+      &quot; On ne traite plus le même Objet
+      &quot;&quot;  --&gt; Arrêt de la boucle
+      EXIT.
+
+    ENDIF.
+
+    TRY.
+        &quot; Suivant le type d&apos;objet
+        CASE &lt;lfs_s_free_memory&gt;-object_type.
+
+          WHEN &apos;VARR&apos;.
+            &quot; Variable Repository
+            lv_assign = |({ &lt;lfs_s_free_memory&gt;-object_id }){ &lt;lfs_s_free_memory&gt;-object_subid }|.
+            ASSIGN (lv_assign) TO &lt;lfs_tab&gt;.
+            IF sy-subrc EQ 0.
+              FREE : &lt;lfs_tab&gt;.
+
+            ENDIF.
+
+          WHEN &apos;FUNC&apos;.
+            &quot; Appel MF
+            CALL FUNCTION &lt;lfs_s_free_memory&gt;-object_id.
+
+          WHEN &apos;CLAS&apos;.
+            &quot; Appel méthode Classe (Statique uniquement !)
+            CALL METHOD (&lt;lfs_s_free_memory&gt;-object_id)=&gt;(&lt;lfs_s_free_memory&gt;-object_subid).
+
+          WHEN OTHERS.
+            &quot; Autre type
+            &quot;&quot;  --&gt; Passe à l&apos;itération suivante
+            CONTINUE.
+
+        ENDCASE.
+
+      CATCH cx_root.
+        &quot; Une erreur est survenue
+        &quot;&quot;  --&gt; Passe à l&apos;itération suivante
+        CONTINUE.
+
+    ENDTRY.
+
+  ENDLOOP.            &quot;Fin parcours des données à libérer
+
+ENDMETHOD.</source>
+  </method>
+ </CLAS>
+ <DOMA DOMNAME="ZTEC_DOM_OBJECT_TYPE" DATATYPE="CHAR" LENG="000004" OUTPUTLEN="000004" DECIMALS="000000" VALEXI="X" MASKLEN="0000" AUTHCLASS="00" OUTPUTSTYLE="00">
+  <dd07v DOMNAME="ZTEC_DOM_OBJECT_TYPE" VALPOS="0001" DOMVALUE_L="CLAS"/>
+  <dd07v DOMNAME="ZTEC_DOM_OBJECT_TYPE" VALPOS="0002" DOMVALUE_L="FUNC"/>
+  <dd07v DOMNAME="ZTEC_DOM_OBJECT_TYPE" VALPOS="0003" DOMVALUE_L="VARR"/>
+ </DOMA>
+ <DTEL ROLLNAME="ZTEC_OBJECT_SUB_ID" DOMNAME="CHAR35" ROUTPUTLEN="000000" HEADLEN="13" SCRLEN1="07" SCRLEN2="13" SCRLEN3="13" AUTHCLASS="00" DTELMASTER="F" DATATYPE="CHAR" LENG="000035" DECIMALS="000000" OUTPUTLEN="000035" REFKIND="D">
+  <tpara/>
+ </DTEL>
+ <DTEL ROLLNAME="ZTEC_OBJECT_TYPE" DOMNAME="ZTEC_DOM_OBJECT_TYPE" ROUTPUTLEN="000000" HEADLEN="12" SCRLEN1="04" SCRLEN2="12" SCRLEN3="12" AUTHCLASS="00" DTELMASTER="F" DATATYPE="CHAR" LENG="000004" DECIMALS="000000" OUTPUTLEN="000004" VALEXI="X" REFKIND="D">
+  <tpara/>
+ </DTEL>
+ <DTEL ROLLNAME="ZTEC_STEP" DOMNAME="NUMC4" ROUTPUTLEN="000000" HEADLEN="14" SCRLEN1="10" SCRLEN2="15" SCRLEN3="20" AUTHCLASS="00" DTELMASTER="F" DATATYPE="NUMC" LENG="000004" DECIMALS="000000" OUTPUTLEN="000004" REFKIND="D">
+  <tpara/>
+ </DTEL>
+ <TABL TABNAME="ZTEC_FREE_MEMORY" TABCLASS="TRANSP" DATMIN="0000000000" DATMAX="0000000000" DATAVG="0000000000" CLIDEP="X" AUTHCLASS="00" MAINFLAG="X" CONTFLAG="A" PROZPUFF="000" EXCLASS="1">
+  <dd09l TABNAME="ZTEC_FREE_MEMORY" AS4LOCAL="A" AS4VERS="0000" TABKAT="0" TABART="APPL1" PUFFERUNG="X" SCHFELDANZ="000" BUFALLOW="X"/>
+  <dd03p TABNAME="ZTEC_FREE_MEMORY" FIELDNAME="MANDT" DDLANGUAGE="E" POSITION="0001" KEYFLAG="X" ROLLNAME="MANDT" ADMINFIELD="0" INTTYPE="C" INTLEN="000006" NOTNULL="X" DOMNAME="MANDT" ROUTPUTLEN="000000" HEADLEN="03" SCRLEN1="10" SCRLEN2="15" SCRLEN3="20" DTELMASTER="D" DATATYPE="CLNT" LENG="000003" OUTPUTLEN="000003" DECIMALS="000000" ENTITYTAB="T000" MASK="  CLNTE" MASKLEN="0000" DDTEXT="Client" REPTEXT="Cl." SCRTEXT_S="Client" SCRTEXT_M="Client" SCRTEXT_L="Client" DOMNAME3L="MANDT" DEPTH="00" COMPTYPE="E" EXCLASS="0" DBPOSITION="0000" OUTPUTSTYLE="00" STRORLOCPOS="00"/>
+  <dd03p TABNAME="ZTEC_FREE_MEMORY" FIELDNAME="PROGRAMM" DDLANGUAGE="E" POSITION="0002" KEYFLAG="X" ROLLNAME="PROGRAMM" ADMINFIELD="0" INTTYPE="C" INTLEN="000080" NOTNULL="X" DOMNAME="PROGRAMM" ROUTPUTLEN="000000" MEMORYID="RID" HEADLEN="08" SCRLEN1="08" SCRLEN2="12" SCRLEN3="12" DTELMASTER="D" DATATYPE="CHAR" LENG="000040" OUTPUTLEN="000040" DECIMALS="000000" ENTITYTAB="TRDIR" MASK="  CHARE" MASKLEN="0000" DDTEXT="ABAP Program Name" REPTEXT="Program" SCRTEXT_S="Program" SCRTEXT_M="Program Name" SCRTEXT_L="Program Name" DOMNAME3L="PROGRAMM" DEPTH="00" COMPTYPE="E" EXCLASS="0" DBPOSITION="0000" OUTPUTSTYLE="00" STRORLOCPOS="00"/>
+  <dd03p TABNAME="ZTEC_FREE_MEMORY" FIELDNAME="STEP" POSITION="0003" KEYFLAG="X" ROLLNAME="ZTEC_STEP" ADMINFIELD="0" INTTYPE="N" INTLEN="000008" NOTNULL="X" DOMNAME="NUMC4" ROUTPUTLEN="000000" HEADLEN="14" SCRLEN1="10" SCRLEN2="15" SCRLEN3="20" DTELMASTER="F" DATATYPE="NUMC" LENG="000004" OUTPUTLEN="000004" DECIMALS="000000" MASK="  NUMCE" MASKLEN="0000" DOMNAME3L="NUMC4" DEPTH="00" COMPTYPE="E" EXCLASS="0" DBPOSITION="0000" OUTPUTSTYLE="00" STRORLOCPOS="00"/>
+  <dd03p TABNAME="ZTEC_FREE_MEMORY" FIELDNAME="OBJECT_TYPE" POSITION="0004" ROLLNAME="ZTEC_OBJECT_TYPE" ADMINFIELD="0" INTTYPE="C" INTLEN="000008" DOMNAME="ZTEC_DOM_OBJECT_TYPE" ROUTPUTLEN="000000" HEADLEN="12" SCRLEN1="04" SCRLEN2="12" SCRLEN3="12" DTELMASTER="F" DATATYPE="CHAR" LENG="000004" OUTPUTLEN="000004" DECIMALS="000000" VALEXI="X" MASK="  CHARE" MASKLEN="0000" DOMNAME3L="ZTEC_DOM_OBJECT_TYPE" SHLPORIGIN="F" DEPTH="00" COMPTYPE="E" EXCLASS="0" DBPOSITION="0000" OUTPUTSTYLE="00" STRORLOCPOS="00"/>
+  <dd03p TABNAME="ZTEC_FREE_MEMORY" FIELDNAME="OBJECT_ID" POSITION="0005" ROLLNAME="ZTEC_OBJECT_ID" ADMINFIELD="0" INTTYPE="C" INTLEN="000090" DOMNAME="CHAR45" ROUTPUTLEN="000000" HEADLEN="17" SCRLEN1="08" SCRLEN2="08" SCRLEN3="17" DTELMASTER="F" DATATYPE="CHAR" LENG="000045" OUTPUTLEN="000045" DECIMALS="000000" MASK="  CHARE" MASKLEN="0000" DOMNAME3L="CHAR45" DEPTH="00" COMPTYPE="E" EXCLASS="0" DBPOSITION="0000" OUTPUTSTYLE="00" STRORLOCPOS="00"/>
+  <dd03p TABNAME="ZTEC_FREE_MEMORY" FIELDNAME="OBJECT_SUBID" POSITION="0006" ROLLNAME="ZTEC_OBJECT_SUB_ID" ADMINFIELD="0" INTTYPE="C" INTLEN="000070" DOMNAME="CHAR35" ROUTPUTLEN="000000" HEADLEN="13" SCRLEN1="07" SCRLEN2="13" SCRLEN3="13" DTELMASTER="F" DATATYPE="CHAR" LENG="000035" OUTPUTLEN="000035" DECIMALS="000000" MASK="  CHARE" MASKLEN="0000" DOMNAME3L="CHAR35" DEPTH="00" COMPTYPE="E" EXCLASS="0" DBPOSITION="0000" OUTPUTSTYLE="00" STRORLOCPOS="00"/>
+ </TABL>
+</nugget>

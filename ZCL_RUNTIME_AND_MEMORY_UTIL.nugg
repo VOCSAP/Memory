@@ -1,0 +1,406 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nugget name="OVR_NUGG">
+ <CLAS CLSNAME="ZCL_RUNTIME_AND_MEMORY_UTIL" VERSION="1" LANGU="F" DESCRIPT="Classe utilitaire pour temps de traitement/occupact° mémoire" CATEGORY="00" EXPOSURE="2" STATE="1" RELEASE="0" CLSFINAL="X" CLSCCINCL="X" FIXPT="X" UNICODE="X" CLSBCCAT="00" DURATION_TYPE="0 " RISK_LEVEL="0 ">
+  <types CLSNAME="ZCL_RUNTIME_AND_MEMORY_UTIL" CMPNAME="TY_MEASUREMENT" VERSION="1" LANGU="F" EXPOSURE="2" STATE="1" EDITORDER="1 " TYPTYPE="4" SRCROW1="11 " SRCCOLUMN1="4 " SRCROW2="24 " SRCCOLUMN2="32 " TYPESRC_LENG="816 " TYPESRC="BEGIN OF ty_measurement,
+                              id                TYPE char20,
+                              seqnr             TYPE seqnr,
+                              time_start        TYPE timestamp,
+                              time_stop         TYPE timestamp,
+                              rtime_start       TYPE int4,
+                              rtime_end         TYPE int4,
+                              rtime_duration    TYPE int4,
+                              mem_before        TYPE abap_msize,
+                              mem_after         TYPE abap_msize,
+                              mem_allocated     TYPE abap_msize,
+                              object_id         TYPE char32,
+                              description       TYPE char50,
+            END OF ty_measurement
+"/>
+  <types CLSNAME="ZCL_RUNTIME_AND_MEMORY_UTIL" CMPNAME="TY_MEASUREMENT_TAB" VERSION="1" LANGU="F" EXPOSURE="2" STATE="1" EDITORDER="2 " TYPTYPE="4" SRCROW1="26 " SRCCOLUMN1="4 " SRCROW2="26 " SRCCOLUMN2="59 " TYPESRC_LENG="58 " TYPESRC="ty_measurement_tab TYPE STANDARD TABLE OF ty_measurement
+"/>
+  <localImplementation>*&quot;* use this source file for the definition and implementation of
+*&quot;* local helper classes, interface definitions and type
+*&quot;* declarations</localImplementation>
+  <localTypes>*&quot;* use this source file for any type of declarations (class
+*&quot;* definitions, interfaces or type declarations) you need for
+*&quot;* components in the private section</localTypes>
+  <localMacros>*&quot;* use this source file for any macro definitions you need
+*&quot;* in the implementation part of the class</localMacros>
+  <typeUsage CLSNAME="ZCL_RUNTIME_AND_MEMORY_UTIL" TYPEGROUP="ABAP" VERSION="1" TPUTYPE="0" IMPLICIT="X"/>
+  <forwardDeclaration>ABAP</forwardDeclaration>
+  <attribute CLSNAME="ZCL_RUNTIME_AND_MEMORY_UTIL" CMPNAME="GT_MEASUREMENT" VERSION="1" LANGU="F" EXPOSURE="2" STATE="1" EDITORDER="1 " ATTDECLTYP="0" ATTEXPVIRT="0" TYPTYPE="1" TYPE="TY_MEASUREMENT_TAB" SRCROW1="0 " SRCCOLUMN1="0 " SRCROW2="0 " SRCCOLUMN2="0 " TYPESRC_LENG="0 "/>
+  <attribute CLSNAME="ZCL_RUNTIME_AND_MEMORY_UTIL" CMPNAME="GV_LAST_ID" VERSION="1" LANGU="F" DESCRIPT="Dernièr identifiant traité" EXPOSURE="2" STATE="1" EDITORDER="2 " ATTDECLTYP="0" ATTEXPVIRT="0" TYPTYPE="1" TYPE="CHAR20" SRCROW1="0 " SRCCOLUMN1="0 " SRCROW2="0 " SRCCOLUMN2="0 " TYPESRC_LENG="0 "/>
+  <attribute CLSNAME="ZCL_RUNTIME_AND_MEMORY_UTIL" CMPNAME="GV_TRACE_DURATION" VERSION="1" LANGU="F" DESCRIPT="Trace sur durée d&apos;exécution" EXPOSURE="2" STATE="1" EDITORDER="3 " ATTDECLTYP="0" ATTVALUE="&apos;X&apos;" ATTEXPVIRT="0" TYPTYPE="1" TYPE="ABAP_BOOL" SRCROW1="0 " SRCCOLUMN1="0 " SRCROW2="0 " SRCCOLUMN2="0 " TYPESRC_LENG="0 "/>
+  <attribute CLSNAME="ZCL_RUNTIME_AND_MEMORY_UTIL" CMPNAME="GV_TRACE_MEMORY" VERSION="1" LANGU="F" DESCRIPT="Trace sur allocation mémoire" EXPOSURE="2" STATE="1" EDITORDER="4 " ATTDECLTYP="0" ATTVALUE="&apos;X&apos;" ATTEXPVIRT="0" TYPTYPE="1" TYPE="ABAP_BOOL" SRCROW1="0 " SRCCOLUMN1="0 " SRCROW2="0 " SRCCOLUMN2="0 " TYPESRC_LENG="0 "/>
+  <method CLSNAME="ZCL_RUNTIME_AND_MEMORY_UTIL" CMPNAME="CONSTRUCTOR" VERSION="1" LANGU="F" DESCRIPT="Instanciation de la classe" EXPOSURE="2" STATE="1" EDITORDER="4 " DISPID="0 " MTDTYPE="2" MTDDECLTYP="0" BCMTDCAT="00" BCMTDSYN="0">
+   <parameter CLSNAME="ZCL_RUNTIME_AND_MEMORY_UTIL" CMPNAME="CONSTRUCTOR" SCONAME="IV_TRACE_DURATION" VERSION="1" LANGU="F" CMPTYPE="1" MTDTYPE="2" EDITORDER="1 " DISPID="0 " PARDECLTYP="0" PARPASSTYP="1" TYPTYPE="1" TYPE="ABAP_BOOL" PARVALUE="&apos;X&apos;"/>
+   <parameter CLSNAME="ZCL_RUNTIME_AND_MEMORY_UTIL" CMPNAME="CONSTRUCTOR" SCONAME="IV_TRACE_MEMORY" VERSION="1" LANGU="F" CMPTYPE="1" MTDTYPE="2" EDITORDER="2 " DISPID="0 " PARDECLTYP="0" PARPASSTYP="1" TYPTYPE="1" TYPE="ABAP_BOOL" PARVALUE="&apos;X&apos;"/>
+   <source>*&amp;---------------------------------------------------------------------*
+*&amp; Programme    : Trace de durée d&apos;exécution et d&apos;allocation mémoire   *
+*&amp; Description  : Constructeur avec paramètres indiquant l&apos;activation  *
+*&amp;                de traces pour:                                      *
+*&amp;                  &gt; durée exécution                                  *
+*&amp;                  &gt; allocation mémoire                               *
+*&amp;---------------------------------------------------------------------*
+*&amp; Réalisé par  : Ivan SKRABO                                          *
+*&amp;---------------------------------------------------------------------*
+*&amp;---------------------------------------------------------------------*
+*&amp; Liste des modifications                                             *
+*&amp; Auteur      Date       Signature  Objet de la modification          *
+*&amp;---------------------------------------------------------------------*
+*&amp;---------------------------------------------------------------------*
+*                                                                      *
+METHOD constructor.
+  &quot; ---------------------------------------------------
+  &quot; Détermination de la durée d&apos;exécution
+  &quot; ---------------------------------------------------
+  gv_trace_duration = iv_trace_duration.
+  &quot; ---------------------------------------------------
+  &quot; Détermination de la mémoire allouée
+  &quot; ---------------------------------------------------
+  gv_trace_memory   = iv_trace_memory.
+
+
+ENDMETHOD.</source>
+  </method>
+  <method CLSNAME="ZCL_RUNTIME_AND_MEMORY_UTIL" CMPNAME="EMPTY_DB_TABLE" VERSION="1" LANGU="F" DESCRIPT="Supprimer le contenu de la table" EXPOSURE="2" STATE="1" EDITORDER="8 " DISPID="0 " MTDTYPE="0" MTDDECLTYP="0" BCMTDCAT="00" BCMTDSYN="0">
+   <parameter CLSNAME="ZCL_RUNTIME_AND_MEMORY_UTIL" CMPNAME="EMPTY_DB_TABLE" SCONAME="IV_TRACE_GUID" VERSION="1" LANGU="F" DESCRIPT='ID unique en format &quot;RAW&quot;' CMPTYPE="1" MTDTYPE="0" EDITORDER="1 " DISPID="0 " PARDECLTYP="0" PARPASSTYP="1" TYPTYPE="1" TYPE="GUID_16" PAROPTIONL="X"/>
+   <parameter CLSNAME="ZCL_RUNTIME_AND_MEMORY_UTIL" CMPNAME="EMPTY_DB_TABLE" SCONAME="IV_TRACE_ID" VERSION="1" LANGU="F" DESCRIPT="ID de trace" CMPTYPE="1" MTDTYPE="0" EDITORDER="2 " DISPID="0 " PARDECLTYP="0" PARPASSTYP="1" TYPTYPE="1" TYPE="CHAR20" PAROPTIONL="X"/>
+   <parameter CLSNAME="ZCL_RUNTIME_AND_MEMORY_UTIL" CMPNAME="EMPTY_DB_TABLE" SCONAME="IV_TIMESTAMP_UTC_START" VERSION="1" LANGU="F" DESCRIPT="Horodatage UTC en abrégé (AAAAMMJJhhmmss)" CMPTYPE="1" MTDTYPE="0" EDITORDER="3 " DISPID="0 " PARDECLTYP="0" PARPASSTYP="1" TYPTYPE="1" TYPE="TIMESTAMP" PAROPTIONL="X"/>
+   <parameter CLSNAME="ZCL_RUNTIME_AND_MEMORY_UTIL" CMPNAME="EMPTY_DB_TABLE" SCONAME="IV_TIMESTAMP_UTC_END" VERSION="1" LANGU="F" DESCRIPT="Horodatage UTC en abrégé (AAAAMMJJhhmmss)" CMPTYPE="1" MTDTYPE="0" EDITORDER="4 " DISPID="0 " PARDECLTYP="0" PARPASSTYP="1" TYPTYPE="1" TYPE="TIMESTAMP" PAROPTIONL="X"/>
+   <parameter CLSNAME="ZCL_RUNTIME_AND_MEMORY_UTIL" CMPNAME="EMPTY_DB_TABLE" SCONAME="IV_EXEC_BY" VERSION="1" LANGU="F" DESCRIPT="Nom d&apos;utilisateur" CMPTYPE="1" MTDTYPE="0" EDITORDER="5 " DISPID="0 " PARDECLTYP="0" PARPASSTYP="1" TYPTYPE="1" TYPE="SYUNAME" PAROPTIONL="X"/>
+   <parameter CLSNAME="ZCL_RUNTIME_AND_MEMORY_UTIL" CMPNAME="EMPTY_DB_TABLE" SCONAME="IV_OBJECT_ID" VERSION="1" LANGU="F" DESCRIPT="ID Objet" CMPTYPE="1" MTDTYPE="0" EDITORDER="6 " DISPID="0 " PARDECLTYP="0" PARPASSTYP="1" TYPTYPE="1" TYPE="CHAR20" PAROPTIONL="X"/>
+   <parameter CLSNAME="ZCL_RUNTIME_AND_MEMORY_UTIL" CMPNAME="EMPTY_DB_TABLE" SCONAME="EV_RETURN_CODE" VERSION="1" LANGU="F" DESCRIPT="Code retour" CMPTYPE="1" MTDTYPE="0" EDITORDER="7 " DISPID="0 " PARDECLTYP="1" PARPASSTYP="1" TYPTYPE="1" TYPE="CHAR2"/>
+   <source>*&amp;---------------------------------------------------------------------*
+*&amp; Programme    : Trace de durée d&apos;exécution et d&apos;allocation mémoire   *
+*&amp; Description  : Suppression de données de la table ztec_t_trace      *
+*                                                                      *
+*&amp;---------------------------------------------------------------------*
+*&amp; Réalisé par  : Ivan SKRABO                                          *
+*&amp;---------------------------------------------------------------------*
+*&amp;---------------------------------------------------------------------*
+*&amp; Liste des modifications                                             *
+*&amp; Auteur      Date       Signature  Objet de la modification          *
+*&amp;---------------------------------------------------------------------*
+*&amp;---------------------------------------------------------------------*
+*                                                                      *
+METHOD EMPTY_DB_TABLE.
+
+  DATA: lv_where    TYPE string,
+        lv_and(3)   TYPE c,
+        lv_exec_by  TYPE syuname.
+
+  CONSTANTS: lc_and(3) TYPE c VALUE &apos;AND&apos;.
+
+  IF NOT iv_trace_guid IS INITIAL.
+    lv_where  = lv_where &amp;&amp; lv_and &amp;&amp; | GUID_RUNTIME = &apos;| &amp;&amp; iv_trace_guid &amp;&amp; |&apos; |.
+    lv_and    = lc_and.
+  ENDIF.
+
+  IF NOT iv_trace_id IS INITIAL.
+    lv_where  = lv_where &amp;&amp; lv_and &amp;&amp; | ID = &apos;| &amp;&amp; iv_trace_id &amp;&amp; |&apos; |.
+    lv_and    = lc_and.
+  ENDIF.
+
+  IF NOT iv_timestamp_utc_start IS INITIAL.
+    lv_where  = lv_where &amp;&amp; lv_and &amp;&amp; | TIME_START GE &apos;| &amp;&amp; iv_timestamp_utc_start &amp;&amp; |&apos; |.
+    lv_and    = lc_and.
+  ENDIF.
+
+  IF NOT iv_timestamp_utc_end IS INITIAL.
+    lv_where  = lv_where &amp;&amp; lv_and &amp;&amp; | TIME_STOP LE &apos;| &amp;&amp; iv_timestamp_utc_end &amp;&amp; |&apos; |.
+    lv_and = lc_and.
+  ENDIF.
+
+  IF NOT iv_exec_by IS INITIAL.
+    lv_exec_by = iv_exec_by.
+    TRANSLATE lv_exec_by TO UPPER CASE.
+    lv_where  = lv_where &amp;&amp; lv_and &amp;&amp; | EXEC_BY = &apos;| &amp;&amp; lv_exec_by &amp;&amp; |&apos; |.
+    lv_and = lc_and.
+  ENDIF.
+
+  IF NOT iv_object_id IS INITIAL.
+    lv_where  = lv_where &amp;&amp; lv_and &amp;&amp; | OBJECT_ID =  &apos;| &amp;&amp; iv_object_id &amp;&amp; |&apos; |.
+    lv_and = lc_and.
+  ENDIF.
+
+  IF lv_where IS INITIAL.
+    DELETE FROM ztec_t_trace.
+  ELSE.
+    DELETE FROM ztec_t_trace
+    WHERE (lv_where).
+  ENDIF.
+
+  IF sy-subrc EQ 0.
+    ev_return_code = 0.
+  ELSE.
+    &quot; Erreur lors de la suppression
+    ev_return_code = 99.
+  ENDIF.
+
+ENDMETHOD.</source>
+  </method>
+  <method CLSNAME="ZCL_RUNTIME_AND_MEMORY_UTIL" CMPNAME="END" VERSION="1" LANGU="F" DESCRIPT="Fin de la trace" EXPOSURE="2" STATE="1" EDITORDER="2 " DISPID="0 " MTDTYPE="0" MTDDECLTYP="0" BCMTDCAT="00" BCMTDSYN="0">
+   <parameter CLSNAME="ZCL_RUNTIME_AND_MEMORY_UTIL" CMPNAME="END" SCONAME="IV_MEASURE_ID" VERSION="1" LANGU="F" DESCRIPT="Identifiant de la mesure" CMPTYPE="1" MTDTYPE="0" EDITORDER="1 " DISPID="0 " PARDECLTYP="0" PARPASSTYP="1" TYPTYPE="1" TYPE="TY_MEASUREMENT-ID" PAROPTIONL="X"/>
+   <parameter CLSNAME="ZCL_RUNTIME_AND_MEMORY_UTIL" CMPNAME="END" SCONAME="IV_MEASURE_SEQNR" VERSION="1" LANGU="F" DESCRIPT="Numéro de séquence" CMPTYPE="1" MTDTYPE="0" EDITORDER="2 " DISPID="0 " PARDECLTYP="0" PARPASSTYP="1" TYPTYPE="1" TYPE="TY_MEASUREMENT-SEQNR" PAROPTIONL="X"/>
+   <parameter CLSNAME="ZCL_RUNTIME_AND_MEMORY_UTIL" CMPNAME="END" SCONAME="EV_SUBRC" VERSION="1" LANGU="F" DESCRIPT="Code retour d&apos;instructions ABAP" CMPTYPE="1" MTDTYPE="0" EDITORDER="3 " DISPID="0 " PARDECLTYP="1" PARPASSTYP="1" TYPTYPE="1" TYPE="SY-SUBRC"/>
+   <source>*&amp;---------------------------------------------------------------------*
+*&amp; Programme    : Trace de durée d&apos;exécution et d&apos;allocation mémoire   *
+*&amp; Description  : Méthode pour terminer la prise de mesures            *
+*                                                                      *
+*&amp;---------------------------------------------------------------------*
+*&amp; Réalisé par  : Ivan SKRABO                                          *
+*&amp;---------------------------------------------------------------------*
+*&amp;---------------------------------------------------------------------*
+*&amp; Liste des modifications                                             *
+*&amp; Auteur      Date       Signature  Objet de la modification          *
+*&amp;---------------------------------------------------------------------*
+*&amp;---------------------------------------------------------------------*
+*                                                                      *
+METHOD end.
+
+  FIELD-SYMBOLS: &lt;fs_measurement&gt; TYPE ty_measurement.
+
+  IF NOT iv_measure_id IS INITIAL.
+    gv_last_id = iv_measure_id .
+  ENDIF.
+
+  &quot; ---------------------------------------------------
+  &quot; Récupération des données de la trace (début traitement)
+  &quot; ---------------------------------------------------
+  READ TABLE gt_measurement WITH KEY id = gv_last_id seqnr = iv_measure_seqnr
+  ASSIGNING &lt;fs_measurement&gt;.
+  IF sy-subrc EQ 0.
+
+
+    &quot; ---------------------------------------------------
+    &quot; Allocation mémoire en début de traitement
+    &quot; ---------------------------------------------------
+    IF gv_trace_duration EQ abap_true.
+      GET TIME STAMP FIELD  &lt;fs_measurement&gt;-time_stop.
+      GET RUN TIME FIELD    &lt;fs_measurement&gt;-rtime_end.
+    ENDIF.
+    &quot; ---------------------------------------------------
+    &quot; Allocation mémoire en fin de traitement
+    &quot; ---------------------------------------------------
+    IF gv_trace_memory EQ abap_true.
+      cl_abap_memory_utilities=&gt;get_total_used_size( IMPORTING size = &lt;fs_measurement&gt;-mem_after ).
+    ENDIF.
+    &quot; ------------------------------------------------------
+    &quot; Détermination des delta(durée/mémoire allouée)
+    &quot; ------------------------------------------------------
+    set_delta( CHANGING cs_measurement = &lt;fs_measurement&gt; ).
+
+  ENDIF.
+
+  CLEAR gv_last_id.
+  ev_subrc = sy-subrc.
+ENDMETHOD.</source>
+  </method>
+  <method CLSNAME="ZCL_RUNTIME_AND_MEMORY_UTIL" CMPNAME="REFRESH_MEASURE_TAB" VERSION="1" LANGU="F" DESCRIPT="Vider la tables des mesures" EXPOSURE="2" STATE="1" EDITORDER="7 " DISPID="0 " MTDTYPE="0" MTDDECLTYP="0" BCMTDCAT="00" BCMTDSYN="0">
+   <source>*&amp;---------------------------------------------------------------------*
+*&amp; Programme    : Trace de durée d&apos;exécution et d&apos;allocation mémoire   *
+*&amp; Description  : RéInitialisation de la table des traces              *
+*                                                                      *
+*&amp;---------------------------------------------------------------------*
+*&amp; Réalisé par  : Ivan SKRABO                                          *
+*&amp;---------------------------------------------------------------------*
+*&amp;---------------------------------------------------------------------*
+*&amp; Liste des modifications                                             *
+*&amp; Auteur      Date       Signature  Objet de la modification          *
+*&amp;---------------------------------------------------------------------*
+*&amp;---------------------------------------------------------------------*
+*                                                                      *
+method REFRESH_MEASURE_TAB.
+
+  REFRESH gt_measurement.
+
+endmethod.</source>
+  </method>
+  <method CLSNAME="ZCL_RUNTIME_AND_MEMORY_UTIL" CMPNAME="SAVE_TO_DB" VERSION="1" LANGU="F" DESCRIPT="Sauvegarde des données de trace en DB" EXPOSURE="2" STATE="1" EDITORDER="6 " DISPID="0 " MTDTYPE="0" MTDDECLTYP="0" BCMTDCAT="00" BCMTDSYN="0">
+   <source>*&amp;---------------------------------------------------------------------*
+*&amp; Programme    : Trace de durée d&apos;exécution et d&apos;allocation mémoire   *
+*&amp; Description  : Sauvegarde des mesures dans la table ztec_t_trace    *
+*                                                                      *
+*&amp;---------------------------------------------------------------------*
+*&amp; Réalisé par  : Ivan SKRABO                                          *
+*&amp;---------------------------------------------------------------------*
+*&amp;---------------------------------------------------------------------*
+*&amp; Liste des modifications                                             *
+*&amp; Auteur      Date       Signature  Objet de la modification          *
+*&amp;---------------------------------------------------------------------*
+*&amp;---------------------------------------------------------------------*
+*                                                                      *
+
+METHOD save_to_db.
+
+  DATA: lv_uuid_16  TYPE sysuuid_x16,
+        lv_counter  TYPE int4,
+
+        lt_trace_db TYPE TABLE OF ztec_t_trace,
+        ls_trace_db TYPE ztec_t_trace,
+
+        lcl_error   TYPE REF TO cx_uuid_error.
+
+  FIELD-SYMBOLS: &lt;fs_measurement&gt; TYPE ty_measurement.
+
+  &quot; -----------------------------------------------------------
+  &quot; Génération du GUID d&apos;identifiant l&apos;exécution
+  &quot; -----------------------------------------------------------
+  TRY.
+      lv_uuid_16 = cl_system_uuid=&gt;create_uuid_x16_static( ).
+    CATCH cx_uuid_error INTO lcl_error.
+      &quot; Cas d&apos;erreur qui ne devrait pas se produire...
+      lv_uuid_16 = &apos;0&apos;.
+      DELETE FROM ztec_t_trace WHERE guid_runtime = lv_uuid_16.
+  ENDTRY.
+
+  ls_trace_db-guid_runtime = lv_uuid_16.
+  ls_trace_db-exec_by      = sy-uname.
+
+  &quot; -----------------------------------------------------------
+  &quot; Préparation des données de traces
+  &quot; -----------------------------------------------------------
+  LOOP AT gt_measurement ASSIGNING &lt;fs_measurement&gt;.
+
+    ADD 1 TO ls_trace_db-trace_no.
+    MOVE-CORRESPONDING &lt;fs_measurement&gt; TO ls_trace_db.
+    APPEND ls_trace_db TO lt_trace_db.
+
+  ENDLOOP.
+  &quot; -----------------------------------------------------------
+  &quot; Sauvegarde des données
+  &quot; -----------------------------------------------------------
+  IF lt_trace_db[] IS NOT INITIAL.
+    INSERT ztec_t_trace FROM TABLE lt_trace_db.
+    FREE lt_trace_db.
+  ELSE.
+
+  ENDIF.
+
+ENDMETHOD.</source>
+  </method>
+  <method CLSNAME="ZCL_RUNTIME_AND_MEMORY_UTIL" CMPNAME="SET_DELTA" VERSION="1" LANGU="F" DESCRIPT="Détermiantion de la durée d&apos;exécution et mémoire allouée" EXPOSURE="2" STATE="1" EDITORDER="3 " DISPID="0 " MTDTYPE="0" MTDDECLTYP="0" BCMTDCAT="00" BCMTDSYN="0">
+   <parameter CLSNAME="ZCL_RUNTIME_AND_MEMORY_UTIL" CMPNAME="SET_DELTA" SCONAME="CS_MEASUREMENT" VERSION="1" LANGU="F" DESCRIPT="Identifiant de la mesure" CMPTYPE="1" MTDTYPE="0" EDITORDER="1 " DISPID="0 " PARDECLTYP="2" PARPASSTYP="1" TYPTYPE="1" TYPE="TY_MEASUREMENT"/>
+   <source>*&amp;---------------------------------------------------------------------*
+*&amp; Programme    : Trace de durée d&apos;exécution et d&apos;allocation mémoire   *
+*&amp; Description  : Méthode pour calculer                                *
+*                 &gt; la durée d&apos;exécution                               *
+*                 &gt; l&apos;espace mémoire allouée                           *
+*&amp;---------------------------------------------------------------------*
+*&amp; Réalisé par  : Ivan SKRABO                                          *
+*&amp;---------------------------------------------------------------------*
+*&amp;---------------------------------------------------------------------*
+*&amp; Liste des modifications                                             *
+*&amp; Auteur      Date       Signature  Objet de la modification          *
+*&amp;---------------------------------------------------------------------*
+*&amp;---------------------------------------------------------------------*
+*                                                                      *
+METHOD set_delta.
+
+  &quot; ---------------------------------------------------
+  &quot; Détermination de la durée d&apos;exécution
+  &quot; ---------------------------------------------------
+  IF gv_trace_duration EQ abap_true.
+    IF NOT cs_measurement-rtime_end IS INITIAL.
+      cs_measurement-rtime_duration = cs_measurement-rtime_end - cs_measurement-rtime_start.
+    ENDIF.
+  ENDIF.
+
+  &quot; ---------------------------------------------------
+  &quot; Détermination de l&apos;espace mémoire allouée
+  &quot; ---------------------------------------------------
+  IF gv_trace_memory EQ abap_true.
+    IF NOT cs_measurement-mem_after IS INITIAL.
+      cs_measurement-mem_allocated = cs_measurement-mem_after - cs_measurement-mem_before.
+    ENDIF.
+  ENDIF.
+
+ENDMETHOD.</source>
+  </method>
+  <method CLSNAME="ZCL_RUNTIME_AND_MEMORY_UTIL" CMPNAME="START" VERSION="1" LANGU="F" DESCRIPT="Début de la trace" EXPOSURE="2" STATE="1" EDITORDER="1 " DISPID="0 " MTDTYPE="0" MTDDECLTYP="0" BCMTDCAT="00" BCMTDSYN="0">
+   <parameter CLSNAME="ZCL_RUNTIME_AND_MEMORY_UTIL" CMPNAME="START" SCONAME="IV_MEASURE_ID" VERSION="1" LANGU="F" DESCRIPT="Identifiant de la mesure" CMPTYPE="1" MTDTYPE="0" EDITORDER="1 " DISPID="0 " PARDECLTYP="0" PARPASSTYP="1" TYPTYPE="1" TYPE="TY_MEASUREMENT-ID"/>
+   <parameter CLSNAME="ZCL_RUNTIME_AND_MEMORY_UTIL" CMPNAME="START" SCONAME="IV_MEASURE_SEQNR" VERSION="1" LANGU="F" DESCRIPT="Numéro de séquence" CMPTYPE="1" MTDTYPE="0" EDITORDER="2 " DISPID="0 " PARDECLTYP="0" PARPASSTYP="1" TYPTYPE="1" TYPE="TY_MEASUREMENT-SEQNR" PAROPTIONL="X"/>
+   <parameter CLSNAME="ZCL_RUNTIME_AND_MEMORY_UTIL" CMPNAME="START" SCONAME="IV_MEASURE_OBJID" VERSION="1" LANGU="F" DESCRIPT="ID d&apos;objet traité" CMPTYPE="1" MTDTYPE="0" EDITORDER="3 " DISPID="0 " PARDECLTYP="0" PARPASSTYP="1" TYPTYPE="1" TYPE="TY_MEASUREMENT-OBJECT_ID" PAROPTIONL="X"/>
+   <parameter CLSNAME="ZCL_RUNTIME_AND_MEMORY_UTIL" CMPNAME="START" SCONAME="IV_MEASURE_DESC" VERSION="1" LANGU="F" DESCRIPT="Description" CMPTYPE="1" MTDTYPE="0" EDITORDER="4 " DISPID="0 " PARDECLTYP="0" PARPASSTYP="1" TYPTYPE="1" TYPE="TY_MEASUREMENT-DESCRIPTION" PAROPTIONL="X"/>
+   <parameter CLSNAME="ZCL_RUNTIME_AND_MEMORY_UTIL" CMPNAME="START" SCONAME="EV_SEQNR" VERSION="1" LANGU="F" DESCRIPT="Numéro de séquence" CMPTYPE="1" MTDTYPE="0" EDITORDER="5 " DISPID="0 " PARDECLTYP="1" PARPASSTYP="1" TYPTYPE="1" TYPE="SEQNR"/>
+   <source>*&amp;---------------------------------------------------------------------*
+*&amp; Programme    : Trace de durée d&apos;exécution et d&apos;allocation mémoire   *
+*&amp; Description  : Méthode pour démarrer la prise de mesures            *
+*                                                                      *
+*&amp;---------------------------------------------------------------------*
+*&amp; Réalisé par  : Ivan SKRABO                                          *
+*&amp;---------------------------------------------------------------------*
+*&amp;---------------------------------------------------------------------*
+*&amp; Liste des modifications                                             *
+*&amp; Auteur      Date       Signature  Objet de la modification          *
+*&amp;---------------------------------------------------------------------*
+*&amp;---------------------------------------------------------------------*
+*                                                                      *
+METHOD start.
+
+  DATA: ls_measurement TYPE ty_measurement.
+
+  &quot; ---------------------------------------------------
+  &quot; Identification de la trace effectuée
+  &quot; ---------------------------------------------------
+  ls_measurement-id           = iv_measure_id.
+  ls_measurement-seqnr        = iv_measure_seqnr.
+  ls_measurement-object_id    = iv_measure_objid.
+  ls_measurement-description  = iv_measure_desc.
+  &quot; ---------------------------------------------------
+  &quot; Temps en début de traitement
+  &quot; ---------------------------------------------------
+  IF gv_trace_duration EQ abap_true.
+    GET TIME STAMP FIELD ls_measurement-time_start.
+    GET RUN TIME FIELD ls_measurement-rtime_start.
+  ENDIF.
+  &quot; ---------------------------------------------------
+  &quot; Allocation mémoire en début de traitement
+  &quot; ---------------------------------------------------
+  IF gv_trace_memory EQ abap_true.
+    cl_abap_memory_utilities=&gt;get_total_used_size( IMPORTING size = ls_measurement-mem_before ).
+  ENDIF.
+
+  APPEND ls_measurement TO gt_measurement.
+
+  &quot; ---------------------------------------------------
+  &quot; Stockage ID du dernier start
+  &quot; ---------------------------------------------------
+  gv_last_id = iv_measure_id.
+
+ENDMETHOD.</source>
+  </method>
+  <method CLSNAME="ZCL_RUNTIME_AND_MEMORY_UTIL" CMPNAME="STOP" VERSION="1" LANGU="F" DESCRIPT="Fin de la trace (identique à méthode END)" EXPOSURE="2" STATE="1" EDITORDER="5 " DISPID="0 " MTDTYPE="0" MTDDECLTYP="0" BCMTDCAT="00" BCMTDSYN="0">
+   <parameter CLSNAME="ZCL_RUNTIME_AND_MEMORY_UTIL" CMPNAME="STOP" SCONAME="IV_MEASURE_ID" VERSION="1" LANGU="F" DESCRIPT="Identifiant de la mesure" CMPTYPE="1" MTDTYPE="0" EDITORDER="1 " DISPID="0 " PARDECLTYP="0" PARPASSTYP="1" TYPTYPE="1" TYPE="TY_MEASUREMENT-ID" PAROPTIONL="X"/>
+   <parameter CLSNAME="ZCL_RUNTIME_AND_MEMORY_UTIL" CMPNAME="STOP" SCONAME="IV_MEASURE_SEQNR" VERSION="1" LANGU="F" DESCRIPT="Numéro de séquence" CMPTYPE="1" MTDTYPE="0" EDITORDER="2 " DISPID="0 " PARDECLTYP="0" PARPASSTYP="1" TYPTYPE="1" TYPE="TY_MEASUREMENT-SEQNR" PAROPTIONL="X"/>
+   <parameter CLSNAME="ZCL_RUNTIME_AND_MEMORY_UTIL" CMPNAME="STOP" SCONAME="EV_SUBRC" VERSION="1" LANGU="F" DESCRIPT="Code retour d&apos;instructions ABAP" CMPTYPE="1" MTDTYPE="0" EDITORDER="3 " DISPID="0 " PARDECLTYP="1" PARPASSTYP="1" TYPTYPE="1" TYPE="SY-SUBRC"/>
+   <source>*&amp;---------------------------------------------------------------------*
+*&amp; Programme    : Trace de durée d&apos;exécution et d&apos;allocation mémoire   *
+*&amp; Description  : Méthode pour terminer la prise de mesures            *
+*                                                                      *
+*&amp;---------------------------------------------------------------------*
+*&amp; Réalisé par  : Ivan SKRABO                                          *
+*&amp;---------------------------------------------------------------------*
+*&amp;---------------------------------------------------------------------*
+*&amp; Liste des modifications                                             *
+*&amp; Auteur      Date       Signature  Objet de la modification          *
+*&amp;---------------------------------------------------------------------*
+*&amp;---------------------------------------------------------------------*
+*                                                                      *
+METHOD STOP.
+
+&quot; Equivalent à l&apos;appel à la méthode END
+
+  end(
+    EXPORTING
+       iv_measure_id    = iv_measure_id     &quot; Identifiant de la mesure
+       iv_measure_seqnr = iv_measure_seqnr  &quot; Numéro de séquence
+     IMPORTING
+       ev_subrc         = ev_subrc          &quot; Code retour d&apos;instructions ABAP
+  ).
+
+ENDMETHOD.</source>
+  </method>
+ </CLAS>
+</nugget>
